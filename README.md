@@ -3,18 +3,24 @@ A simple onetimepad script
 
 # encrypt
 
-    echo "Hello, World" > ./in
-    python3 onetimepad.py -m encrypt -i ./in -o ./out
+```sh
+echo "Hello, World" > ./in
+python3 onetimepad.py -m encrypt -i ./in -o ./out
+cat ./out  # base64 encoded secret
+I0hHIghjXXwvQ18L
+```
 
 # decrypt
 
-    cat ./out > ./in
-    python3 onetimepad.py -m decrypt -i ./in -o ./out
-    cat ./out
-    Hello, World
+```sh
+cat ./out > ./in
+python3 onetimepad.py -m decrypt -i ./in -o ./out
+cat ./out  # cleartext
+Hello, World
+```
 
 # key file
 
-A new key is generated for every encryption.
+A new key is generated for every encryption. An existent key is overwritten.
 
     ./key
