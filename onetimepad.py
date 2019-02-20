@@ -1,4 +1,5 @@
-import random
+import gc
+import secrets
 import string
 import base64
 import argparse
@@ -18,7 +19,7 @@ parser.add_argument("-s", "--shred", default="", type=str,
     choices=["", "i","k","o","all"],
     help="shred files (default: %(default)s)")
 
-rand = random.SystemRandom()
+rand = secrets.SystemRandom()
 printable = string.digits + string.ascii_letters + string.punctuation
 
 def shred(filename):
@@ -36,27 +37,27 @@ def decrypt(data, key):
 def main():
     args = parser.parse_args()    
     
-    in_file = open(args.input, "r")
-    out_file = open(args.output, "w")
-
-    i = in_file.read()
-    if args.mode == "encrypt":
-        i = i.strip()
-        key_file = open(args.key, "w")
-        k = gen_key(i)
-        key_file.write(k)
-        o = encrypt(i, k)
-        o = base64.encodebytes(bytes(o, "utf-8")).decode("utf-8")
-    else:
-        i = base64.decodebytes(bytes(i, "utf-8")).decode("utf-8")
-        key_file = open(args.key, "r")
-        k = key_file.readline().strip()
-        o = decrypt(i, k)
-    out_file.write(o)
-
-    in_file.close()
-    key_file.close()
-    out_file.close()
+    try:
+        with open(args.input, "r") as in_file, \
+             open(args.output, "w") as out_file:
+            i = in_file.read()
+            if args.mode == "encrypt":
+                i = i.strip()
+                key = gen_key(i)
+                o = encrypt(i, key)
+                o = base64.encodebytes(bytes(o, "utf-8")).decode("utf-8")
+                k = base64.encodebytes(bytes(key, "utf-8")).decode("utf-8")
+                with open(args.key, "w") as key_file:
+                    key_file.write(k)
+            else:
+                with open(args.key, "r") as key_file:
+                    k = key_file.read()
+                i = base64.decodebytes(bytes(i, "utf-8")).decode("utf-8")
+                key = base64.decodebytes(bytes(k, "utf-8")).decode("utf-8")
+                o = decrypt(i, key)
+            out_file.write(o)
+    finally:
+        gc.collect()
 
     if "all" in args.shred:
         args.shred = "iok"
